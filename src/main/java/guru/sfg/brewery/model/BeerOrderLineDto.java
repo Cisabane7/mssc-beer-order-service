@@ -17,9 +17,11 @@
 
 package guru.sfg.brewery.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
@@ -28,20 +30,22 @@ import java.util.UUID;
 
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class BeerOrderLineDto extends BaseItem {
+@Builder
+@AllArgsConstructor
+public class BeerOrderLineDto {
+    @JsonProperty("id")
+    private UUID id = null;
 
-    @Builder
-    public BeerOrderLineDto(UUID id, Integer version, OffsetDateTime createdDate, OffsetDateTime lastModifiedDate,
-                            String upc, String beerName, UUID beerId, Integer orderQuantity, String beerStyle, BigDecimal price) {
-        super(id, version, createdDate, lastModifiedDate);
-        this.upc = upc;
-        this.beerName = beerName;
-        this.beerStyle = beerStyle;
-        this.beerId = beerId;
-        this.orderQuantity = orderQuantity;
-        this.price = price;
-    }
+    @JsonProperty("version")
+    private Integer version = null;
+
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssZ", shape=JsonFormat.Shape.STRING)
+    @JsonProperty("createdDate")
+    private OffsetDateTime createdDate = null;
+
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssZ", shape=JsonFormat.Shape.STRING)
+    @JsonProperty("lastModifiedDate")
+    private OffsetDateTime lastModifiedDate = null;
 
     private String upc;
     private String beerName;
