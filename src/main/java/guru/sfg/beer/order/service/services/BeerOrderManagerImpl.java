@@ -45,6 +45,9 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         Optional.ofNullable(beerOrder).ifPresent(beerOrder1 -> {
             if(response.getIsValid()) {
                 sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.VALIDATION_PASSED);
+                BeerOrder savedBeerOrder = beerOrderRepository.getOne(response.getOrderId());
+
+                sendBeerOrderEvent(savedBeerOrder, BeerOrderEventEnum.ALLOCATE_ORDER);
             } else {
                 sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.VALIDATION_FAILED);
             }
