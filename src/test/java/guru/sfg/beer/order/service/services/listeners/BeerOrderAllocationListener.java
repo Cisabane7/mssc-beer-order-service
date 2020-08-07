@@ -23,7 +23,7 @@ public class BeerOrderAllocationListener {
         request.getBeerOrderDto().getBeerOrderLines().forEach(beerOrderLineDto -> {
             beerOrderLineDto.setQuantityAllocated(beerOrderLineDto.getOrderQuantity());
         });
-        
+
         jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_ORDER_RESPONSE_QUEUE, AllocateOrderResult.builder()
                 .beerOrderDto(request.getBeerOrderDto())
                 .allocationError(false)

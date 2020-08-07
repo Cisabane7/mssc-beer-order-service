@@ -4,6 +4,8 @@ import guru.sfg.beer.order.service.domain.BeerOrder;
 import guru.sfg.brewery.model.BeerOrderDto;
 import guru.sfg.brewery.model.events.ValidateOrderResponse;
 
+import java.util.UUID;
+
 public interface BeerOrderManager {
 
     BeerOrder newBeerOrder(BeerOrder beerOrder);
@@ -15,4 +17,6 @@ public interface BeerOrderManager {
     void beerOrderAllocationPendingInventory(BeerOrderDto beerOrder);
 
     void beerOrderAllocationFailed(BeerOrderDto beerOrder);
+
+    void beerOrderPickedUp(UUID id);
 }
