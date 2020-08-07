@@ -30,7 +30,7 @@ public class BeerOrderStateChangeInterceptor extends StateMachineInterceptorAdap
     public void preStateChange(State<BeerOrderStatusEnum, BeerOrderEventEnum> state, Message<BeerOrderEventEnum> message
             , Transition<BeerOrderStatusEnum, BeerOrderEventEnum> transition, StateMachine<BeerOrderStatusEnum
             , BeerOrderEventEnum> stateMachine) {
-        Optional.ofNullable(message).flatMap(msg -> Optional.ofNullable((String)msg.getHeaders().getOrDefault(BeerOrderManagerImpl.ORDER_ID_HEADER,"")))
+        Optional.ofNullable(message).flatMap(msg -> Optional.ofNullable(msg.getHeaders().getOrDefault(BeerOrderManagerImpl.ORDER_ID_HEADER,"").toString()))
                 .ifPresent(orderId -> {
                     log.debug("Saving state for order id: {}, Status: {}", orderId, state.getId());
                     BeerOrder beerOrder = beerOrderRepository.getOne(UUID.fromString(orderId));
