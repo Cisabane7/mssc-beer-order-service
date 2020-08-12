@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jenspiegsa.wiremockextension.WireMockExtension;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import guru.sfg.beer.order.service.config.JmsConfig;
 import guru.sfg.beer.order.service.domain.BeerOrder;
 import guru.sfg.beer.order.service.domain.BeerOrderLine;
 import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
@@ -12,6 +13,7 @@ import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.repositories.CustomerRepository;
 import guru.sfg.beer.order.service.services.beer.BeerServiceRestTemplateImpl;
 import guru.sfg.brewery.model.BeerDto;
+import guru.sfg.brewery.model.events.AllocationFailureEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jms.core.JmsTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -50,6 +53,9 @@ public class BeerOrderManagerImplIT {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private JmsTemplate jmsTemplate;
 
     private Customer testCustomer;
 
@@ -169,6 +175,10 @@ public class BeerOrderManagerImplIT {
             BeerOrder found = beerOrderRepository.findById(beerOrder.getId()).get();
             assertEquals(BeerOrderStatusEnum.ALLOCATION_EXCEPTION, found.getOrderStatus());
         });
+
+        AllocationFailureEvent allocationFailureEvent = (AllocationFailureEvent) jmsTemplate.receiveAndConvert(JmsConfig.ALLOCATION_FAILURE_QUEUE);
+        assertNotNull(allocationFailureEvent);
+        assertEquals(allocationFailureEvent.getOrderId(), savedBeerOrder.getId());
     }
 
     @Test
