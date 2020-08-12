@@ -17,9 +17,10 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,6 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     private final BeerOrderRepository beerOrderRepository;
     private final StateMachineFactory<BeerOrderStatusEnum, BeerOrderEventEnum> stateMachineFactory;
     private final BeerOrderStateChangeInterceptor beerOrderStateChangeInterceptor;
-    private final EntityManager entityManager;
 
     @Transactional
     @Override
@@ -50,11 +50,13 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     @Override
     @Transactional
     public void handleBeerOrderValidationResponse(ValidateOrderResponse response) {
-        entityManager.flush();
         Optional<BeerOrder> optionalBeerOrder = beerOrderRepository.findById(response.getOrderId());
         optionalBeerOrder.ifPresentOrElse(beerOrder1 -> {
             if(response.getIsValid()) {
                 sendBeerOrderEvent(beerOrder1, BeerOrderEventEnum.VALIDATION_PASSED);
+                //wait for status change
+                awaitForStatus(response.getOrderId(), BeerOrderStatusEnum.VALIDATED);
+
                 BeerOrder savedBeerOrder = beerOrderRepository.findById(response.getOrderId()).get();
 
                 sendBeerOrderEvent(savedBeerOrder, BeerOrderEventEnum.ALLOCATE_ORDER);
@@ -69,6 +71,8 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         Optional<BeerOrder> optionalBeerOrder = beerOrderRepository.findById(beerOrderDto.getId());
         optionalBeerOrder.ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.ALLOCATION_SUCCESS);
+            awaitForStatus(beerOrder.getId(), BeerOrderStatusEnum.ALLOCATED);
+
             updateAllocatedQty(beerOrderDto);
         }, ()-> {log.error("Not Found beerOrder id : {}", beerOrderDto.getId());});
     }
@@ -78,6 +82,8 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         Optional<BeerOrder> optionalBeerOrder = beerOrderRepository.findById(beerOrderDto.getId());
         optionalBeerOrder.ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.ALLOCATION_NO_INVENTORY);
+            awaitForStatus(beerOrder.getId(), BeerOrderStatusEnum.PENDING_INVENTORY);
+
             updateAllocatedQty(beerOrderDto);
         }, ()-> {log.error("Not Found beerOrder id : {}", beerOrderDto.getId());});
     }
@@ -142,5 +148,38 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         sm.start();
 
         return sm;
+    }
+
+    private void awaitForStatus(UUID beerOrderId, BeerOrderStatusEnum statusEnum) {
+
+        AtomicBoolean found = new AtomicBoolean(false);
+        AtomicInteger loopCount = new AtomicInteger(0);
+
+        while (!found.get()) {
+            if (loopCount.incrementAndGet() > 10) {
+                found.set(true);
+                log.debug("Loop Retries exceeded");
+            }
+
+            beerOrderRepository.findById(beerOrderId).ifPresentOrElse(beerOrder -> {
+                if (beerOrder.getOrderStatus().equals(statusEnum)) {
+                    found.set(true);
+                    log.debug("Order Found");
+                } else {
+                    log.debug("Order Status Not Equal. Expected: " + statusEnum.name() + " Found: " + beerOrder.getOrderStatus().name());
+                }
+            }, () -> {
+                log.debug("Order Id Not Found");
+            });
+
+            if (!found.get()) {
+                try {
+                    log.debug("Sleeping for retry");
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    // do nothing
+                }
+            }
+        }
     }
 }
