@@ -23,10 +23,13 @@ public class BeerOrderAllocationListener {
 
         boolean allocationError = false;
         boolean pendingInventory = false;
+        boolean sendMessage = true;
         if ("fail-allocation".equals(request.getBeerOrderDto().getCustomerRef())) {
             allocationError = true;
         } else if ("partial-allocation".equals(request.getBeerOrderDto().getCustomerRef())) {
             pendingInventory = true;
+        } else if ("dont-allocate".equals(request.getBeerOrderDto().getCustomerRef())) {
+            sendMessage = false;
         }
 
         boolean finalPendingInventory = pendingInventory;
@@ -38,11 +41,12 @@ public class BeerOrderAllocationListener {
                 beerOrderLineDto.setQuantityAllocated(beerOrderLineDto.getOrderQuantity());
             }
         });
-
-        jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_ORDER_RESPONSE_QUEUE, AllocateOrderResult.builder()
-                .beerOrderDto(request.getBeerOrderDto())
-                .allocationError(allocationError)
-                .pendingInventory(pendingInventory)
-                .build());
+        if (sendMessage) {
+            jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_ORDER_RESPONSE_QUEUE, AllocateOrderResult.builder()
+                    .beerOrderDto(request.getBeerOrderDto())
+                    .allocationError(allocationError)
+                    .pendingInventory(pendingInventory)
+                    .build());
+        }
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +30,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     private final BeerOrderRepository beerOrderRepository;
     private final StateMachineFactory<BeerOrderStatusEnum, BeerOrderEventEnum> stateMachineFactory;
     private final BeerOrderStateChangeInterceptor beerOrderStateChangeInterceptor;
+    private final EntityManager entityManager;
 
     @Transactional
     @Override
@@ -48,6 +50,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     @Override
     @Transactional
     public void handleBeerOrderValidationResponse(ValidateOrderResponse response) {
+        entityManager.flush();
         Optional<BeerOrder> optionalBeerOrder = beerOrderRepository.findById(response.getOrderId());
         optionalBeerOrder.ifPresentOrElse(beerOrder1 -> {
             if(response.getIsValid()) {
@@ -111,6 +114,12 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         }, () -> log.error("BeerOrder Not Found, id: {}", id));
     }
 
+    @Override
+    public void cancelOrder(UUID id) {
+        beerOrderRepository.findById(id).ifPresentOrElse(beerOrder -> {
+            sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.CANCEL_ORDER);
+        }, () -> log.error("BeerOrder Not Found, id: {}", id));
+    }
     private void sendBeerOrderEvent(BeerOrder beerOrder, BeerOrderEventEnum orderEvent) {
         StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> sm = build(beerOrder);
 
