@@ -15,6 +15,10 @@
 
     <description>MSSC Beer Order Service</description>
 
+    <properties>
+        <docker.image.prefix>cisabane7</docker.image.prefix>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.activemq</groupId>
