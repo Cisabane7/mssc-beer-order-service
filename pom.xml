@@ -8,7 +8,7 @@
     </parent>
     <groupId>guru.springframework</groupId>
     <artifactId>mssc-beer-order-service</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.2</version>
 
     <name>mssc-beer-order-service</name>
 
@@ -58,6 +58,6 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/Cisabane7/mssc-beer-order-service.git</developerConnection>
-      <tag>HEAD</tag>
+      <tag>mssc-beer-order-service-0.0.2</tag>
   </scm>
 </project>
