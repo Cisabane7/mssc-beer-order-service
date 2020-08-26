@@ -44,5 +44,20 @@
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <tagBase>https://github.com/Cisabane7/mssc-beer-order-service/releases</tagBase>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
+    <scm>
+        <developerConnection>scm:git:https://github.com/Cisabane7/mssc-beer-order-service.git</developerConnection>
+    </scm>
 </project>
