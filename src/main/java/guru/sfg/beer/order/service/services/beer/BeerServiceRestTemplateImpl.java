@@ -17,7 +17,7 @@ import java.util.UUID;
 public class BeerServiceRestTemplateImpl implements BeerService {
 
     private RestTemplate restTemplate;
-    private String beerServiceHost;
+    private String beerservicehost;
     public static final String BEER_PATH = "/api/v1";
 
     public BeerServiceRestTemplateImpl(RestTemplateBuilder restTemplate) {
@@ -26,7 +26,7 @@ public class BeerServiceRestTemplateImpl implements BeerService {
 
     @Override
     public BeerDto getBeerByUpc(String upc, Boolean showInventoryOnHand) {
-       ResponseEntity<BeerDto> response = restTemplate.exchange(beerServiceHost + BEER_PATH + "/beerUpc/{upc}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
+       ResponseEntity<BeerDto> response = restTemplate.exchange(beerservicehost + BEER_PATH + "/beerUpc/{upc}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
                 , new ParameterizedTypeReference<BeerDto>() {
                 }, (Object) upc, (Object) showInventoryOnHand);
        return Objects.requireNonNull(response.getBody());
@@ -34,14 +34,14 @@ public class BeerServiceRestTemplateImpl implements BeerService {
 
     @Override
     public BeerDto getBeerByUUID(UUID id, Boolean showInventoryOnHand) {
-        ResponseEntity<BeerDto> response = restTemplate.exchange(beerServiceHost + BEER_PATH + "/beer/{id}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
+        ResponseEntity<BeerDto> response = restTemplate.exchange(beerservicehost + BEER_PATH + "/beer/{id}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
                 , new ParameterizedTypeReference<BeerDto>() {
                 }, (Object) id, (Object) showInventoryOnHand);
         return Objects.requireNonNull(response.getBody());
     }
 
-    public void setBeerServiceHost(String beerServiceHost) {
-        this.beerServiceHost = beerServiceHost;
+    public void setBeerservicehost(String beerservicehost) {
+        this.beerservicehost = beerservicehost;
     }
 }
 
