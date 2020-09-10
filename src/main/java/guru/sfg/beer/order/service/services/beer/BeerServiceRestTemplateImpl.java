@@ -1,8 +1,8 @@
 package guru.sfg.beer.order.service.services.beer;
 
-import guru.sfg.beer.order.service.config.BeerServiceProperties;
 import guru.sfg.brewery.model.BeerDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -21,9 +21,9 @@ public class BeerServiceRestTemplateImpl implements BeerService {
     private String beerServiceHost;
     public static final String BEER_PATH = "/api/v1";
 
-    public BeerServiceRestTemplateImpl(BeerServiceProperties beerServiceProperties, RestTemplateBuilder restTemplate) {
+    public BeerServiceRestTemplateImpl(@Value("${sfg.brewery.beerServiceHost}") String beerServiceHost, RestTemplateBuilder restTemplate) {
         this.restTemplate = restTemplate.build();
-        this.beerServiceHost = beerServiceProperties.getBeerServiceHost();
+        this.beerServiceHost = beerServiceHost;
         log.debug("Beer Service Host = {}", this.beerServiceHost);
     }
 
