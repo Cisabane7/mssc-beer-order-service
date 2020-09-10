@@ -1,7 +1,8 @@
 package guru.sfg.beer.order.service.services.beer;
 
+import guru.sfg.beer.order.service.config.BeerServiceProperties;
 import guru.sfg.brewery.model.BeerDto;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -13,20 +14,22 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Component
-@ConfigurationProperties(prefix = "sfg.brewery", ignoreUnknownFields = false)
+@Slf4j
 public class BeerServiceRestTemplateImpl implements BeerService {
 
     private RestTemplate restTemplate;
-    private String beerservicehost;
+    private String beerServiceHost;
     public static final String BEER_PATH = "/api/v1";
 
-    public BeerServiceRestTemplateImpl(RestTemplateBuilder restTemplate) {
+    public BeerServiceRestTemplateImpl(BeerServiceProperties beerServiceProperties, RestTemplateBuilder restTemplate) {
         this.restTemplate = restTemplate.build();
+        this.beerServiceHost = beerServiceProperties.getBeerServiceHost();
+        log.debug("Beer Service Host = {}", this.beerServiceHost);
     }
 
     @Override
     public BeerDto getBeerByUpc(String upc, Boolean showInventoryOnHand) {
-       ResponseEntity<BeerDto> response = restTemplate.exchange(beerservicehost + BEER_PATH + "/beerUpc/{upc}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
+       ResponseEntity<BeerDto> response = restTemplate.exchange(beerServiceHost + BEER_PATH + "/beerUpc/{upc}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
                 , new ParameterizedTypeReference<BeerDto>() {
                 }, (Object) upc, (Object) showInventoryOnHand);
        return Objects.requireNonNull(response.getBody());
@@ -34,14 +37,10 @@ public class BeerServiceRestTemplateImpl implements BeerService {
 
     @Override
     public BeerDto getBeerByUUID(UUID id, Boolean showInventoryOnHand) {
-        ResponseEntity<BeerDto> response = restTemplate.exchange(beerservicehost + BEER_PATH + "/beer/{id}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
+        ResponseEntity<BeerDto> response = restTemplate.exchange(beerServiceHost + BEER_PATH + "/beer/{id}?showInventoryOnHand={showInventoryOnHand}", HttpMethod.GET, null
                 , new ParameterizedTypeReference<BeerDto>() {
                 }, (Object) id, (Object) showInventoryOnHand);
         return Objects.requireNonNull(response.getBody());
-    }
-
-    public void setBeerservicehost(String beerservicehost) {
-        this.beerservicehost = beerservicehost;
     }
 }
 
